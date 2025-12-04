@@ -1,18 +1,83 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Platform, Switch } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import TimelineScreen from './TimelineScreen';
 
-// ... (imports remain same)
+interface OnboardingResponse {
+    user_id: number;
+    due_date: string;
+    current_week: number;
+    current_day: number;
+    message: string;
+}
 
 export default function OnboardingScreen() {
-    // ... (state remains same)
+    const [name, setName] = useState('');
+    const [isFirstPregnancy, setIsFirstPregnancy] = useState(true);
+    const [dateMode, setDateMode] = useState<'LMP' | 'DueDate'>('LMP');
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [highRiskFactors, setHighRiskFactors] = useState('');
+    const [result, setResult] = useState<OnboardingResponse | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const handleDateChange = (event: any, date?: Date) => {
+        setShowDatePicker(Platform.OS === 'ios');
+        if (date) {
+            setSelectedDate(date);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!name.trim()) {
+            alert('Please enter your name');
+            return;
+        }
+        setLoading(true);
+        try {
+            // Replace with your actual local IP if running on device, or localhost for simulator
+            // Android Emulator usually uses 10.0.2.2
+            const API_URL = 'http://10.100.102.22:8000/onboarding';
+
+            const payload = {
+                name,
+                is_first_pregnancy: isFirstPregnancy,
+                high_risk_factors: highRiskFactors,
+                [dateMode === 'LMP' ? 'last_menstrual_period' : 'due_date']: selectedDate.toISOString().split('T')[0]
+            };
+
+            console.log('Sending payload:', payload);
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server Error:', response.status, errorText);
+                alert(`Server Error: ${response.status}\n${errorText}`);
+                return;
+            }
+
+            const data = await response.json();
+            setResult(data);
+        } catch (error) {
+            console.error('Network Error:', error);
+            alert(`Connection Error: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (result) {
         return (
             <TimelineScreen userId={result.user_id} currentWeek={result.current_week} />
         );
     }
-
-    // ... (rest of the component)
-
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -85,8 +150,12 @@ export default function OnboardingScreen() {
                 />
             </View>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Start My Journey</Text>
+            <TouchableOpacity
+                style={[styles.submitButton, loading && styles.disabledButton]}
+                onPress={handleSubmit}
+                disabled={loading}
+            >
+                <Text style={styles.submitButtonText}>{loading ? "Processing..." : "Start My Journey"}</Text>
             </TouchableOpacity>
 
         </ScrollView>
@@ -105,17 +174,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 30,
         color: '#333',
-        textAlign: 'center',
-    },
-    subtitle: {
-        fontSize: 20,
-        color: '#666',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    text: {
-        fontSize: 16,
-        marginBottom: 20,
         textAlign: 'center',
     },
     inputGroup: {
@@ -175,24 +233,13 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
+    disabledButton: {
+        backgroundColor: '#ccc',
+        elevation: 0,
+    },
     submitButtonText: {
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
-    },
-    card: {
-        backgroundColor: '#f8f8f8',
-        padding: 20,
-        borderRadius: 12,
-        marginTop: 20,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    cardText: {
-        fontSize: 16,
-        color: '#555',
     },
 });

@@ -12,6 +12,8 @@ class TimelineEvent(SQLModel, table=True):
     week_end: int
     is_completed: bool = False
     category: str # "Medical", "Test", "Vaccine", "Lifestyle"
+    
+    user: Optional["UserProfile"] = Relationship(back_populates="events")
 
 class ChatLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

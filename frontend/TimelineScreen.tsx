@@ -32,7 +32,7 @@ export default function TimelineScreen({ userId, currentWeek }: TimelineScreenPr
     const fetchTimeline = async () => {
         try {
             // Replace with your actual local IP
-            const API_URL = `http://10.0.2.2:8000/timeline/${userId}`;
+            const API_URL = `http://10.100.102.22:8000/timeline/${userId}`;
             const response = await fetch(API_URL);
             const data = await response.json();
             setEvents(data);

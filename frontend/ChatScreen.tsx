@@ -28,7 +28,7 @@ export default function ChatScreen({ userId }: ChatScreenProps) {
 
         try {
             // Replace with your actual local IP
-            const API_URL = 'http://10.0.2.2:8000/chat';
+            const API_URL = 'http://10.100.102.22:8000/chat';
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
