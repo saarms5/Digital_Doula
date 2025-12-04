@@ -13,6 +13,8 @@ interface TimelineEvent {
     week_end: number;
     is_completed: boolean;
     category: string;
+    details?: string;
+    normal_values?: string;
 }
 
 interface TimelineScreenProps {
@@ -24,6 +26,7 @@ export default function TimelineScreen({ userId, currentWeek }: TimelineScreenPr
     const [view, setView] = useState<'timeline' | 'chat' | 'weekly' | 'partner' | 'gobag'>('timeline');
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [expandedEventId, setExpandedEventId] = useState<number | null>(null);
 
     useEffect(() => {
         fetchTimeline();
@@ -52,8 +55,14 @@ export default function TimelineScreen({ userId, currentWeek }: TimelineScreenPr
         if (isCurrent) statusColor = '#6C63FF'; // Active
         if (isPast) statusColor = '#4CAF50'; // Completed/Past
 
+        const isExpanded = expandedEventId === item.id;
+
         return (
-            <View style={[styles.card, { borderLeftColor: statusColor, borderLeftWidth: 5 }]}>
+            <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setExpandedEventId(isExpanded ? null : item.id)}
+                style={[styles.card, { borderLeftColor: statusColor, borderLeftWidth: 5 }]}
+            >
                 <View style={styles.header}>
                     <Text style={styles.weekRange}>Weeks {item.week_start}-{item.week_end}</Text>
                     <View style={[styles.badge, { backgroundColor: getCategoryColor(item.category) }]}>
@@ -62,12 +71,30 @@ export default function TimelineScreen({ userId, currentWeek }: TimelineScreenPr
                 </View>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.description}>{item.description}</Text>
+
+                {isExpanded && (item.details || item.normal_values) && (
+                    <View style={styles.detailsContainer}>
+                        {item.details && (
+                            <View style={styles.detailSection}>
+                                <Text style={styles.detailLabel}>What is it?</Text>
+                                <Text style={styles.detailText}>{item.details}</Text>
+                            </View>
+                        )}
+                        {item.normal_values && (
+                            <View style={styles.detailSection}>
+                                <Text style={styles.detailLabel}>Normal Values:</Text>
+                                <Text style={styles.detailText}>{item.normal_values}</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+
                 {isCurrent && (
                     <View style={styles.activeTag}>
                         <Text style={styles.activeTagText}>HAPPENING NOW</Text>
                     </View>
                 )}
-            </View>
+            </TouchableOpacity>
         );
     };
 
@@ -303,5 +330,25 @@ const styles = StyleSheet.create({
         color: '#666',
         fontWeight: '600',
         textDecorationLine: 'underline',
+    },
+    detailsContainer: {
+        marginTop: 15,
+        paddingTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+    },
+    detailSection: {
+        marginBottom: 10,
+    },
+    detailLabel: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#444',
+        marginBottom: 4,
+    },
+    detailText: {
+        fontSize: 14,
+        color: '#555',
+        lineHeight: 20,
     },
 });
