@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import ChatScreen from './ChatScreen';
+import WeeklyUpdateScreen from './WeeklyUpdateScreen';
+import PartnerCardScreen from './PartnerCardScreen';
+import GoBagScreen from './GoBagScreen';
 
 interface TimelineEvent {
     id: number;
@@ -18,7 +21,7 @@ interface TimelineScreenProps {
 }
 
 export default function TimelineScreen({ userId, currentWeek }: TimelineScreenProps) {
-    const [view, setView] = useState<'timeline' | 'chat'>('timeline');
+    const [view, setView] = useState<'timeline' | 'chat' | 'weekly' | 'partner' | 'gobag'>('timeline');
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -97,12 +100,71 @@ export default function TimelineScreen({ userId, currentWeek }: TimelineScreenPr
         );
     }
 
+    if (view === 'weekly') {
+        return (
+            <View style={{ flex: 1 }}>
+                <View style={styles.navBar}>
+                    <TouchableOpacity onPress={() => setView('timeline')}>
+                        <Text style={styles.navText}>← Back</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.navTitle}>Weekly Download</Text>
+                    <View style={{ width: 50 }} />
+                </View>
+                <WeeklyUpdateScreen currentWeek={currentWeek} />
+            </View>
+        );
+    }
+
+    if (view === 'partner') {
+        return (
+            <View style={{ flex: 1 }}>
+                <View style={styles.navBar}>
+                    <TouchableOpacity onPress={() => setView('timeline')}>
+                        <Text style={styles.navText}>← Back</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.navTitle}>Partner Card</Text>
+                    <View style={{ width: 50 }} />
+                </View>
+                <PartnerCardScreen />
+            </View>
+        );
+    }
+
+    if (view === 'gobag') {
+        return (
+            <View style={{ flex: 1 }}>
+                <View style={styles.navBar}>
+                    <TouchableOpacity onPress={() => setView('timeline')}>
+                        <Text style={styles.navText}>← Back</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.navTitle}>Go Bag</Text>
+                    <View style={{ width: 50 }} />
+                </View>
+                <GoBagScreen />
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.headerRow}>
                 <Text style={styles.headerTitle}>Your Medical Timeline</Text>
-                <TouchableOpacity style={styles.chatButton} onPress={() => setView('chat')}>
-                    <Text style={styles.chatButtonText}>Ask AI</Text>
+                <View style={styles.headerButtons}>
+                    <TouchableOpacity style={[styles.chatButton, { marginRight: 10, backgroundColor: '#FF6584' }]} onPress={() => setView('weekly')}>
+                        <Text style={styles.chatButtonText}>This Week</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.chatButton} onPress={() => setView('chat')}>
+                        <Text style={styles.chatButtonText}>Ask AI</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <View style={styles.quickLinks}>
+                <TouchableOpacity style={styles.linkButton} onPress={() => setView('partner')}>
+                    <Text style={styles.linkText}>Partner Card</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.linkButton} onPress={() => setView('gobag')}>
+                    <Text style={styles.linkText}>Go Bag</Text>
                 </TouchableOpacity>
             </View>
 
@@ -224,5 +286,22 @@ const styles = StyleSheet.create({
     navTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    headerButtons: {
+        flexDirection: 'row',
+    },
+    quickLinks: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+    },
+    linkButton: {
+        marginRight: 15,
+        paddingVertical: 5,
+    },
+    linkText: {
+        color: '#666',
+        fontWeight: '600',
+        textDecorationLine: 'underline',
     },
 });
